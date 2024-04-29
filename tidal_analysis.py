@@ -1,4 +1,4 @@
-#import required modules
+# Import required modules
 import datetime
 import os
 import math
@@ -9,14 +9,21 @@ import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
 
+# Create tide_data function
 def read_tidal_data(filename):
 
     return 0
     
+# Create year_data function
 def extract_single_year_remove_mean(year, data):
-   
+   year_string_start = str(year)+"0101" # (Remove comment) January 1st
+   year_string_end = str(year)+"1231" # (Remove comment) December 31st
+   year_data = data.loc[year_string_start:year_string_end, ['Tide']]
+   # Remove mean to oscillate around zero
+   mmm = np.mean(year_data['Tide'])
+   year_data['Tide'] -=mmm
 
-    return 
+   return year_data
 
 
 def extract_section_remove_mean(start, end, data):
