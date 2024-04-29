@@ -1,7 +1,13 @@
-#!/usr/bin/env python3
-
-# import the modules you need here
-import argparse
+#import required modules
+import datetime
+import os
+import math
+import wget
+import numpy as np
+import uptide
+import pytz
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def read_tidal_data(filename):
 
