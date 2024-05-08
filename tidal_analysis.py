@@ -12,34 +12,39 @@ import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Create tidal_data function
-def read_tidal_data(filename):
-    tidal_data = pd.read_table(filename, skiprows = 11, names=["Cycle", "Date", "Time", "Sea Level", "Residual"], delimiter = r"\s+")
-    tidal_data['Date'] = pd.to_datetime(dict(year=tidal_data[0], month=tidal_data[1], day=tidal_data[2], hour=tidal_data[3]))
-    tidal_data = tidal_data.drop(['Cycle', 'Residual'], axis='columns')
-    tidal_data = tidal_data.set_index('Date')
-    tidal_data = tidal_data.mask(tidal_data['Sea Level'] < -300)
+#Use 1946/7 data
+filename1 = "data/1946ABE.txt"
+filename2 = "data/1947ABE.txt"
 
-    return tidal_data
+# Create read_tidal_data function
+def read_tidal_data(filename):
+    read_tidal_data = pd.read_csv(filename, skiprows = 11, names=["Cycle", "Date", "Time", "Sea Level", "Residual"], delimiter = r"\s+")
+    # Combine 'Date' and 'Time' columns into 'Datetime' column
+    read_tidal_data['Datetime'] = pd.to_datetime(read_tidal_data['Date'] + ' ' + read_tidal_data['Time'], format="%Y/%m/%d %H:%M:%S")
+    # Drop all columns not required
+    read_tidal_data = read_tidal_data.drop(['Cycle','Date', 'Time', 'Residual'], axis='columns')
+    read_tidal_data.set_index('Datetime', inplace=True)
+    # Replace M, N, and T vlaues in 'Sea Level' column, replace with NaN
+    read_tidal_data.replace(to_replace=".*M$",value={'Sea Level':np.nan},regex=True,inplace=True)
+    return read_tidal_data
     
 # Create year_data function
 def extract_single_year_remove_mean(year, data):
-    year_string_start = str(year)+"0101" # (Remove comment) January 1st
-    year_string_end = str(year)+"1231" # (Remove comment) December 31st
-    year_data = data.loc[year_string_start:year_string_end, ['Tide']]
-    # Remove mean to oscillate around zero
-    mmm = np.mean(year_data['Tide'])
-    year_data['Tide'] -=mmm
-
+    year_string_start = str(year)+"0101"
+    year_string_end = str(year)+"1231"
+    # Read data between Jan 1 and Dec 31
+    year_data = data.loc[year_string_start:year_string_end, ['Sea Level']]
+    year_mean = np.mean(year_data['Sea Level'])
+    # Remove year mean
+    year_data['Sea Level'] -= year_mean
     return year_data
 
-# Create functions for each area: Aberdeen_data, Dover_data, Whitby_data
+# Create section_data function
 def extract_section_remove_mean(start, end, data):
-    
 
-    return 
+    return section_data
 
-# Create complete_data function with a loop joining all location files
+# Create complete_data function with a loop joining all location files. Sort data into chronological order.
 def join_data(data1, data2):
 
     return 
