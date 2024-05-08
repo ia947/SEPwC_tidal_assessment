@@ -41,7 +41,13 @@ def extract_single_year_remove_mean(year, data):
 
 # Create section_data function
 def extract_section_remove_mean(start, end, data):
-
+    section_start = str(start)
+    section_end = str(end)
+    # Read data in the given section
+    section_data = data.loc[section_start:section_end, ['Sea Level']]
+    section_mean = np.mean(section_data['Sea Level'])
+    # Remove section mean
+    section_data['Sea Level'] -= section_mean
     return section_data
 
 # Create complete_data function with a loop joining all location files. Sort data into chronological order.
