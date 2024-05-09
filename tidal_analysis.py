@@ -11,23 +11,34 @@ import uptide
 import pytz
 import pandas as pd
 import matplotlib.pyplot as plt
+import scipy.stats
 
-#Use 1946/7 data
-filename1 = "data/1946ABE.txt"
-filename2 = "data/1947ABE.txt"
+#file_paths = glob.glob('data/aberdeen/*.txt') + glob.glob('data/dover/*.txt') + glob.glob('data/whitby/*.txt')
+file_paths = glob.glob('data/*.txt')
+filename = ['data/1946ABE.txt', 'data/1947ABE.txt']
 
 # Create read_tidal_data function
 def read_tidal_data(filename):
-    read_tidal_data = pd.read_csv(filename, skiprows = 11, names=["Cycle", "Date", "Time", "Sea Level", "Residual"], delimiter = r"\s+")
+    tidal_data = pd.read_csv(filename, skiprows = 11, names=["Cycle", "Date", "Time", "Sea Level", "Residual"], delimiter = r"\s+")
     # Combine 'Date' and 'Time' columns into 'Datetime' column
-    read_tidal_data['Datetime'] = pd.to_datetime(read_tidal_data['Date'] + ' ' + read_tidal_data['Time'], format="%Y/%m/%d %H:%M:%S")
+    tidal_data['Datetime'] = pd.to_datetime(tidal_data['Date'] + ' ' + tidal_data['Time'], format="%Y/%m/%d %H:%M:%S")
     # Drop all columns not required
-    read_tidal_data = read_tidal_data.drop(['Cycle','Date', 'Time', 'Residual'], axis='columns')
-    read_tidal_data.set_index('Datetime', inplace=True)
-    # Replace M, N, and T vlaues in 'Sea Level' column, replace with NaN
-    read_tidal_data.replace(to_replace=".*M$",value={'Sea Level':np.nan},regex=True,inplace=True)
-    return read_tidal_data
-    
+    tidal_data = tidal_data.drop(['Cycle','Date', 'Time', 'Residual'], axis='columns')
+    tidal_data.set_index('Datetime', inplace=True)
+    # Replace M, N, and T vlaues in 'Sea Level' column with NaN
+    tidal_data.replace(to_replace=".*[MNT]$",value={'Sea Level':np.nan},regex=True, inplace=True)
+    tidal_data['Sea Level'] = tidal_data['Sea Level'].astype(float)
+    return tidal_data
+
+# Create join_data function with a loop joining all location files. Sort data into chronological order.
+def join_data(data1, data2):
+    # Join data into a new dataframe
+    #data = [data1, data2]
+    join = pd.concat([data1, data2])
+    # Sort values into chronological order
+    join.sort_index(inplace=True)
+    return join
+
 # Create year_data function
 def extract_single_year_remove_mean(year, data):
     year_string_start = str(year)+"0101"
@@ -50,28 +61,19 @@ def extract_section_remove_mean(start, end, data):
     section_data['Sea Level'] -= section_mean
     return section_data
 
-# Create complete_data function with a loop joining all location files. Sort data into chronological order.
-def join_data(data1, data2):
-
-    return 
-
-
-# Calculate the rate of SLR for each location
+# Calculate the rate of SLR for each location. Convert datetime into seconds, for SLR in m/s, or m/day then x365
 def sea_level_rise(data):
-
-                                                     
+    
     return 
 
 # Calculate M2 and S2 tidal components for each station
 def tidal_analysis(data, constituents, start_datetime):
-
-
+    
     return 
 
-# Create function to show longest continuous segment of data???
+# Create function to show longest continuous segment of data??? using uptide
 def get_longest_contiguous_data(data):
-
-
+    
     return 
 
 if __name__ == '__main__':
