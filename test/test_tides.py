@@ -22,8 +22,7 @@ class TestTidalAnalysis():
 
         # check for M, N and T data; should be NaN
         assert data['Sea Level'].isnull().any()
-        floats = data.apply(pd.to_numeric, errors="ignore").map(lambda x: isinstance(x, float)).all()
-        assert floats['Sea Level']
+        assert pd.api.types.is_float_dtype(data['Sea Level'])
 
         # check for error on unknown file
         with pytest.raises(FileNotFoundError):
@@ -47,7 +46,7 @@ class TestTidalAnalysis():
         assert data.index[-1] == pd.Timestamp('1947-12-31 23:00:00')
 
         # check you get a fail if two incompatible dfs are given
-        data2.drop(columns=["Sea Level","Time"], inplace=True)
+        data2.drop(columns=["Sea Level"], inplace=True)
         data = join_data(data1, data2)
         
 
