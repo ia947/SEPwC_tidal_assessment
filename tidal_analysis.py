@@ -111,3 +111,38 @@ if __name__ == '__main__':
     dirname = args.directory
     verbose = args.verbose
 
+    all_files = glob.glob('*.txt')
+    data_list = []
+
+    for file in all_files:
+        if verbose:
+            print(f"Processing file: {file}")
+
+        tidal_data = read_tidal_data(file)
+        data_list.append(tidal_data)
+
+    if data_list:
+        combined_data = data_list[0]
+        for tidal_data in data_list[1:]:
+            combined_data = join_data(combined_data, tidal_data)
+
+        if verbose:
+            print("Data successfully combined")
+
+        slope, p_value = sea_level_rise(combined_data)
+        if verbose:
+            print(f"Sea level rise: {slope} metres per day, p-value: {p_value}")
+
+        constituents = ["M2", "S2"]
+        start_datetime = combined_data.index[0].to_pydatetime()
+        amp, pha = tidal_analysis(combined_data, constituents, start_datetime)
+        if verbose:
+            print(f"Tidal Analysis - Amplitude: {amp}, Phase: {pha}")
+
+        longest_run = get_longest_contiguous_data(combined_data['Sea Level'])
+        if verbose:
+            print(f"Longest contiguous data run: {longest_run}")
+
+    else:
+        if verbose:
+            print("No data files found in directory")
