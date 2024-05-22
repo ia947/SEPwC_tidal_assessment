@@ -86,8 +86,11 @@ def tidal_analysis(tidal_data, constituents, start_datetime):
     return (amp, pha)
 
 def get_longest_contiguous_data(data):
-    
-    return
+    ''' Create function to find the longest continuous section of datetimes '''
+    time_series = pd.Series(data)
+    runs = uptide.find_runs(time_series)
+    longest_run = max(runs, key=len)
+    return longest_run
 
 if __name__ == '__main__':
 
