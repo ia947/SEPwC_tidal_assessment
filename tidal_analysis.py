@@ -74,8 +74,16 @@ def sea_level_rise(sea_level_data):
     return slope, p_value
 
 def tidal_analysis(tidal_data, constituents, start_datetime):
-    
-    return 
+    ''' Perform harmonic analysis and return the amplitude and phase'''
+    # Remove NaN values
+    tidal_data = tidal_data.dropna()
+    # Set the tidal constituents and datetimes given the data read-in
+    tide = uptide.Tides(constituents)
+    tide.set_initial_time(start_datetime)
+    seconds_since = (tidal_data.index.astype('int64').to_numpy()/1e9) - start_datetime.timestamp()
+    # Harmonic analysis in seconds, returning amp and pha
+    amp,pha = uptide.harmonic_analysis(tide, tidal_data['Sea Level'].to_numpy(), seconds_since)
+    return (amp, pha)
 
 def get_longest_contiguous_data(data):
     
