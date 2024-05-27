@@ -129,21 +129,21 @@ if __name__ == '__main__':
 
     if data_list:
         combined_data = data_list[0]
-        for tidal_data in data_list[1:]:
+        for tidal_station_data in data_list[1:]:
             combined_data = join_data(combined_data, tidal_station_data)
 
         if verbose:
             print("Data successfully combined")
             print("Calculating SLR, and M2 and S2 tidal components")
 
-        slope, p_value = sea_level_rise(combined_data)
+        rate_SLR, p = sea_level_rise(combined_data)
         if verbose:
-            print(f"Sea level rise: {slope} metres per day, p-value: {p_value}")
+            print(f"Sea level rise: {rate_SLR} metres per day, p-value: {p}")
 
         tidal_constituents = ['M2', 'S2']
         initial_datetime = combined_data.index[0].to_pydatetime()
-        amp, pha = tidal_analysis(combined_data, tidal_constituents, initial_datetime)
-        print(f"Tidal Analysis - Amplitude: {amp}, Phase: {pha}")
+        amplitude, phase = tidal_analysis(combined_data, tidal_constituents, initial_datetime)
+        print(f"Tidal Analysis - Amplitude: {amplitude}, Phase: {phase}")
 
         longest_run = get_longest_contiguous_data(combined_data['Sea Level'])
         if verbose:
