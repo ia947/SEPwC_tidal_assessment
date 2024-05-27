@@ -18,10 +18,14 @@ from scipy.stats import linregress
 
 def read_tidal_data(filename):
     ''' Create read_tidal_data function to take a .txt input and format the correct Datetime,
-        assert an appropriate name for the Sea Level column, and replace corrupted values with NaN '''
-    tidal_data = pd.read_csv(filename, skiprows = 11, names=["Cycle", "Date", "Time", "Sea Level", "Residual"], delimiter = r"\s+")
+        assert an appropriate name for the Sea Level column, replace corrupted values with NaN '''
+    tidal_data = pd.read_csv(filename, skiprows = 11,
+                             names=["Cycle", "Date", "Time", "Sea Level", "Residual"],
+                             delimiter = r"\s+"
+                             )
     # Combine 'Date' and 'Time' columns into 'Datetime' column
-    tidal_data['Datetime'] = pd.to_datetime(tidal_data['Date'] + ' ' + tidal_data['Time'], format="%Y/%m/%d %H:%M:%S")
+    tidal_data['Datetime'] = pd.to_datetime(tidal_data['Date'] + ' ' +
+                                            tidal_data['Time'], format="%Y/%m/%d %H:%M:%S")
     # Drop all columns not required
     tidal_data = tidal_data.drop(['Cycle','Date', 'Time', 'Residual'], axis='columns')
     tidal_data.set_index('Datetime', inplace=True)
@@ -70,7 +74,9 @@ def sea_level_rise(sea_level_data):
     # Turn the index from 'dates2num'
     sea_level_data.index = dates.date2num(sea_level_data.index)
     # Calculate SLR using linear regression
-    slope, intercept, r_value, p_value, std_err = linregress(sea_level_data.index, sea_level_data['Sea Level'])
+    slope, intercept, r_value, p_value, std_err = linregress(
+        sea_level_data.index, sea_level_data['Sea Level']
+        )
     return slope, p_value
 
 def tidal_analysis(tidal_data, constituents, start_datetime):
@@ -111,33 +117,33 @@ if __name__ == '__main__':
     dirname = args.directory
     verbose = args.verbose
 
-    all_files = glob.glob('*.txt')
+    all_files = glob.glob(os.path.join(dirname, '*.txt'))
     data_list = []
 
     for file in all_files:
         if verbose:
             print(f"Processing file: {file}")
 
-        tidal_data = read_tidal_data(file)
-        data_list.append(tidal_data)
+        tidal_station_data = read_tidal_data(file)
+        data_list.append(tidal_station_data)
 
     if data_list:
         combined_data = data_list[0]
         for tidal_data in data_list[1:]:
-            combined_data = join_data(combined_data, tidal_data)
+            combined_data = join_data(combined_data, tidal_station_data)
 
         if verbose:
             print("Data successfully combined")
+            print("Calculating SLR, and M2 and S2 tidal components")
 
         slope, p_value = sea_level_rise(combined_data)
         if verbose:
             print(f"Sea level rise: {slope} metres per day, p-value: {p_value}")
 
-        constituents = ["M2", "S2"]
-        start_datetime = combined_data.index[0].to_pydatetime()
-        amp, pha = tidal_analysis(combined_data, constituents, start_datetime)
-        if verbose:
-            print(f"Tidal Analysis - Amplitude: {amp}, Phase: {pha}")
+        tidal_constituents = ['M2', 'S2']
+        initial_datetime = combined_data.index[0].to_pydatetime()
+        amp, pha = tidal_analysis(combined_data, tidal_constituents, initial_datetime)
+        print(f"Tidal Analysis - Amplitude: {amp}, Phase: {pha}")
 
         longest_run = get_longest_contiguous_data(combined_data['Sea Level'])
         if verbose:
