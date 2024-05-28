@@ -1,7 +1,7 @@
 '''
 This module performs tidal analysis including reading, joining,
 analysing sea level data from guages, and performing tidal harmonic
-analysis using uptide for M2 and S2 tidal components
+analysis using uptide for any specified tidal component
 '''
 
 # Import required modules
@@ -96,10 +96,12 @@ def get_longest_contiguous_data(data):
     data = data.dropna()
     data.sort_index(inplace=True)
     # Find differences between consecutive datetimes
+    # Adapted from https://pandas.pydata.org/docs/reference/api/pandas.Index.to_series.html
     time_diffs = data.index.to_series().diff()
     # Find where there are breaks in the 15-minute interval
     breaks = time_diffs != timedelta(minutes=15)
     # Create groups based on breaks
+    # Adapted from https://stackoverflow.com/questions/41808951/pandas-group-by-cumsum-keep-columns
     groups = (~breaks).cumsum()
     longest_group = data.groupby(groups).size().idxmax()
     # Get the range of datetimes for the longest continuous section
@@ -134,6 +136,9 @@ if __name__ == '__main__':
     all_files = glob.glob(os.path.join(dirname, '*.txt'))
     data_list = []
 
+    # Verbose argument style adapted from Stack Overflow:
+    # https://stackoverflow.com/questions/5980042/how-to-implement-the-verbose-or-v-option-into-a-script
+
     for file in all_files:
         if verbose:
             print(f"Processing file: {file}")
@@ -148,14 +153,13 @@ if __name__ == '__main__':
 
         if verbose:
             print("Data successfully combined")
-            print("Calculating SLR, and M2 and S2 tidal components")
+            print("Calculating SLR and tidal component")
 
         rate_SLR, p = sea_level_rise(combined_data)
         if verbose:
             print(f"Sea level rise: {rate_SLR} metres per day, p-value: {p}")
 
-        # Calculate the amp and pha for M2 and S2 tidal components
-        # This section should be edited if more constituents are required
+        # Calculate the amp and pha for the specified tidal component
         tidal_constituents = [constituent]
         initial_datetime = combined_data.index[0].to_pydatetime()
         amplitude, phase = tidal_analysis(combined_data, tidal_constituents, initial_datetime)
