@@ -40,7 +40,6 @@ def join_data(data1, data2):
         then sort into chronological order '''
     # Join data into a new dataframe
     join = pd.concat([data1, data2])
-    # Sort chronologically
     join.sort_index(inplace=True)
     return join
 
@@ -105,6 +104,7 @@ def get_longest_contiguous_data(data):
     groups = (~breaks).cumsum()
     longest_group = data.groupby(groups).size().idxmax()
     # Get the range of datetimes for the longest continuous section
+    # Adapted from https://stackoverflow.com/questions/64325222/how-to-get-the-minimum-and-maximum-value-from-a-datetimeindex
     longest_data = data[groups == longest_group]
     start_datetime = longest_data.index.min()
     end_datetime = longest_data.index.max()
