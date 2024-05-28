@@ -118,6 +118,8 @@ if __name__ == '__main__':
 
     parser.add_argument("directory",
                     help="the directory containing txt files with data")
+    parser.add_argument("constituent",
+                    help="the tidal constituent to calculate amp, pha")
     parser.add_argument('-v', '--verbose',
                     action='store_true',
                     default=False,
@@ -125,6 +127,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     dirname = args.directory
+    constituent = args.constituent
     verbose = args.verbose
 
     # Read all .txt files from the supplied directory in a new dataframe
@@ -153,14 +156,14 @@ if __name__ == '__main__':
 
         # Calculate the amp and pha for M2 and S2 tidal components
         # This section should be edited if more constituents are required
-        tidal_constituents = ['M2', 'S2']
+        tidal_constituents = [constituent]
         initial_datetime = combined_data.index[0].to_pydatetime()
         amplitude, phase = tidal_analysis(combined_data, tidal_constituents, initial_datetime)
         print(f"Tidal Analysis - Amplitude: {amplitude}, Phase: {phase}")
 
         longest_contiguous = get_longest_contiguous_data(combined_data)
         if verbose:
-            print(f"Longest contiguous data run: {longest_contiguous}")
+            print(f"Longest contiguous data run is between: {longest_contiguous}")
 
     else:
         if verbose:
