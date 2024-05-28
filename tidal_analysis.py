@@ -1,11 +1,12 @@
 '''
 This module performs tidal analysis including reading, joining,
 analysing sea level data from guages, and performing tidal harmonic
-analysis using uptide
+analysis using uptide for M2 and S2 tidal components
 '''
 
 # Import required modules
 import datetime
+from datetime import timedelta
 import argparse
 import glob
 import os
@@ -67,9 +68,8 @@ def extract_section_remove_mean(start, end, data):
 
 def sea_level_rise(sea_level_data):
     ''' Calculate the rate of SLR using scipy linregress '''
-    # Remove NaN values
+    # Remove NaN and mean
     sea_level_data = sea_level_data.dropna()
-    # Remove mean value
     sea_level_data['Sea Level'] -= np.mean(sea_level_data['Sea Level'])
     # Turn the index from 'dates2num'
     sea_level_data.index = dates.date2num(sea_level_data.index)
@@ -93,10 +93,20 @@ def tidal_analysis(tidal_data, constituents, start_datetime):
 
 def get_longest_contiguous_data(data):
     ''' Create function to find the longest continuous section of datetimes '''
-    time_series = pd.Series(data)
-    runs = uptide.find_runs(time_series)
-    longest_run = max(runs, key=len)
-    return longest_run
+    data = data.dropna()
+    data.sort_index(inplace=True)
+    # Find differences between consecutive datetimes
+    time_diffs = data.index.to_series().diff()
+    # Find where there are breaks in the 15-minute interval
+    breaks = time_diffs != timedelta(minutes=15)
+    # Create groups based on breaks
+    groups = (~breaks).cumsum()
+    longest_group = data.groupby(groups).size().idxmax()
+    # Get the range of datetimes for the longest continuous section
+    longest_data = data[groups == longest_group]
+    start_datetime = longest_data.index.min()
+    end_datetime = longest_data.index.max()
+    return start_datetime, end_datetime
 
 if __name__ == '__main__':
 
@@ -117,6 +127,7 @@ if __name__ == '__main__':
     dirname = args.directory
     verbose = args.verbose
 
+    # Read all .txt files from the supplied directory in a new dataframe
     all_files = glob.glob(os.path.join(dirname, '*.txt'))
     data_list = []
 
@@ -140,14 +151,16 @@ if __name__ == '__main__':
         if verbose:
             print(f"Sea level rise: {rate_SLR} metres per day, p-value: {p}")
 
+        # Calculate the amp and pha for M2 and S2 tidal components
+        # This section should be edited if more constituents are required
         tidal_constituents = ['M2', 'S2']
         initial_datetime = combined_data.index[0].to_pydatetime()
         amplitude, phase = tidal_analysis(combined_data, tidal_constituents, initial_datetime)
         print(f"Tidal Analysis - Amplitude: {amplitude}, Phase: {phase}")
 
-        longest_run = get_longest_contiguous_data(combined_data['Sea Level'])
+        longest_contiguous = get_longest_contiguous_data(combined_data)
         if verbose:
-            print(f"Longest contiguous data run: {longest_run}")
+            print(f"Longest contiguous data run: {longest_contiguous}")
 
     else:
         if verbose:
